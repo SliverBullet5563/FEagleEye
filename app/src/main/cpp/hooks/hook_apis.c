@@ -14,7 +14,7 @@ int MAX_DATA_LEN = 300;
  *  IO : open, read, write - kernel functions
  *  fopen, fread, fwrite - lib functions, can be ignored
  */
-int eagle_open(char *filename, int access, int permission);
+/*int eagle_open(char *filename, int access, int permission);
 HOOK_INFO system_hook_info_open = {{}, "libc", "open", eagle_open, eagle_open};
 int eagle_open(char *filename, int access, int permission)
 {
@@ -107,7 +107,7 @@ int eagle_write(int handle, void *buffer, int nbyte){
 	}
 	free(write_content);
 	return write_count;
-}
+}*/
 
 /*
 FILE* eagle_fopen(const char* path, const char* mode);
@@ -204,7 +204,7 @@ size_t eagle_fwrite(const void *buf, size_t size, size_t count, FILE *fp){
 /**
  * Socket: socket, connect, bind, listen, accept, sendto, recvfrom
  */
-int eagle_socket(int domain, int type, int protocol);
+/*int eagle_socket(int domain, int type, int protocol);
 HOOK_INFO system_hook_info_socket = {{}, "libc", "socket", eagle_socket, eagle_socket};
 int eagle_socket(int domain, int type, int protocol){
 	int (*orig_socket)(int domain, int type, int protocol);
@@ -301,7 +301,7 @@ int eagle_accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen){
 		"\"return\":{\"int\":\"%d\"}}}",uid, NATIVE_SYSTEM_API, "accept", sockfd, sa_family, sa_data, addrlen, status);
 
 	return status;
-}
+}*/
 
 //int eagle_sendto(int s, const void *msg, size_t len, int flags, const struct sockaddr *to, socklen_t tolen);
 //HOOK_INFO system_hook_info_sendto = {{}, "libc", "sendto", eagle_sendto, eagle_sendto};
@@ -369,7 +369,7 @@ int eagle_accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen){
 //	return status;
 //}
 
-int eagle_recvfrom(int s, void *buf, size_t len, int flags, struct sockaddr *from, socklen_t *fromlen);
+/*int eagle_recvfrom(int s, void *buf, size_t len, int flags, struct sockaddr *from, socklen_t *fromlen);
 HOOK_INFO system_hook_info_recvfrom = {{}, "libc", "recvfrom", eagle_recvfrom, eagle_recvfrom};
 int eagle_recvfrom(int s, void *buf, size_t len, int flags, struct sockaddr *from, socklen_t *fromlen){
 	int (*orig_recvfrom)(int s, void *buf, size_t len, int flags, struct sockaddr *from, socklen_t *fromlen);
@@ -407,9 +407,9 @@ int eagle_recvfrom(int s, void *buf, size_t len, int flags, struct sockaddr *fro
 	return recv_count;
 }
 
-/**
+*//**
  * Command execution: execve
- */
+ *//*
 int eagle_execve(const char *filename, char *const argv[ ], char *const envp[ ]);
 HOOK_INFO system_hook_info_execve = {{}, "libc", "execve", eagle_execve, eagle_execve};
 int eagle_execve(const char *filename, char *const argv[ ], char *const envp[ ]){
@@ -440,7 +440,7 @@ int eagle_execve(const char *filename, char *const argv[ ], char *const envp[ ])
 	if(envp_string != NULL && strcmp(envp_string, ""))
 		free(envp_string);
 	return status;
-}
+}*/
 
 /**
  * Application scope native lib
@@ -461,3 +461,87 @@ int eagle_test(int a, char* string){
 		uid, NATIVE_APP_API, "test", a, string, res);
 	return res;
 }
+
+//hook lua xxtea_decypt [20200704]
+char * eagle_xxtea_decypt(unsigned char *data, unsigned int data_len,
+						  unsigned char *key, unsigned int key_len, unsigned int *ret_lenth);
+HOOK_INFO custom_hook_info_xxtea_decypt = {{},"libcocos2dlua","_Z13xxtea_decryptPhjS_jPj",
+										   eagle_xxtea_decypt,eagle_xxtea_decypt};
+char * eagle_xxtea_decypt(unsigned char *data, unsigned int data_len,
+						  unsigned char *key, unsigned int key_len, unsigned int *ret_lenth)
+{
+	//声明目标函数指针
+	char* (*orig_xxtea_decypt)(unsigned char *data, unsigned int data_len,
+							  unsigned char *key, unsigned int key_len, unsigned int *ret_lenth);
+	//用于指向存储目标进程内的目标函数地址
+	struct hook_t eph = custom_hook_info_xxtea_decypt.eph;
+	orig_xxtea_decypt = (void*)eph.orig;
+
+    LOGI("HOOK xxtea_decrypt with key: %s",key);
+
+	//保存现场
+	hook_precall(&eph);
+	//只读取key，不做其他操作，直接调用
+	char *res = orig_xxtea_decypt(data,data_len,key,key_len,ret_lenth);
+
+	//恢复现场
+	hook_postcall(&eph);
+//    LOGI("data =  ; data_len = %d ; key =  ; key_len = %d ;",data_len,key_len);
+//    LOGI("data = ");puts((const char *) data);
+//    LOGI("key = ");puts((const char *) key);
+//    LOGI("data = %s ; data_len = %d ; key = %s ; key_len = %d ;",*data,data_len,*key,key_len);
+	LOGI("xxtea_decypt被hook到");
+	//将需要的信息打印出来
+//	int uid = getuid();
+//	LOGI("{\"Basic\":[\"%d\",\"%d\",\"false\"],\"InvokeApi\":{\"%s\":{\"data\":\"%s\",\"datalen\":\"%d\",\"key\":\"%s\",\"keylen\":\"%d\"}}}",
+//		 uid, NATIVE_APP_API, "_Z13xxtea_decryptPhjS_jPj", *data, data_len, *key,key_len);
+	return res;
+
+}
+
+
+
+//char * eagle_setxxteaKey(unsigned char *data, unsigned int data_len,
+//                          unsigned char *key, unsigned int key_len, unsigned int *ret_lenth);
+//HOOK_INFO custom_hook_info_setxxteaKey = {{},"libcocos2dlua","_ZN7cocos2d8LuaStack18setXXTEAKeyAndSignEPKciS2_i",
+//                                          eagle_setxxteaKey,eagle_setxxteaKey};
+//char * eagle_setxxteaKey(unsigned char *data, unsigned int data_len,
+//                          unsigned char *key, unsigned int key_len, unsigned int *ret_lenth)
+//{
+//    //声明目标函数指针
+//    char* (*orig_setxxteaKey)(unsigned char *data, unsigned int data_len,
+//                               unsigned char *key, unsigned int key_len, unsigned int *ret_lenth);
+//    //用于指向存储目标进程内的目标函数地址
+//    struct hook_t eph = custom_hook_info_setxxteaKey.eph;
+//    orig_setxxteaKey = (void*)eph.orig;
+//    //保存现场
+//    hook_precall(&eph);
+//    //只读取key，不做其他操作，直接调用
+//    char *res = orig_setxxteaKey(data,data_len,key,key_len,ret_lenth);
+//    //恢复现场
+//    hook_postcall(&eph);
+//    LOGI("data =  ; data_len = %d ; key =  ; key_len = %d ;",data_len,key_len);
+////    LOGI("data = %u ; data_len = %d ; key = %u ; key_len = %d ;",data,data_len,key,key_len);
+//        LOGI("data = ");puts((const char *) data);
+////    LOGI("key = ");puts((const char *) key);
+//	LOGI("setxxteaKey被hook到");
+//    //将需要的信息打印出来
+//    int uid = getuid();
+//    LOGI("{\"Basic\":[\"%d\",\"%d\",\"false\"],\"InvokeApi\":{\"%s\":{\"data\":\"%s\",\"datalen\":\"%d\",\"key\":\"%s\",\"keylen\":\"%d\"}}}",
+//         uid, NATIVE_APP_API, "_ZN7cocos2d8LuaStack18setXXTEAKeyAndSignEPKciS2_i", (char*)*data, data_len, (char*)*key,key_len);
+//    return res;
+//}
+
+
+//char * eagle_luaLoadBuffer(unsigned char *data, unsigned int data_len,
+//                         unsigned char *key, unsigned int key_len, unsigned int *ret_lenth);
+
+
+
+
+
+
+
+
+
+

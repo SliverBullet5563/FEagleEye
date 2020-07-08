@@ -102,6 +102,7 @@ public class Launcher implements IXposedHookLoadPackage, IXposedHookZygoteInit {
 	// Called when zygote initialize
 	public void initZygote(StartupParam startupParam) throws Throwable {
 		// Create hook method
+		Log.i(Util.TAG,"进入initZygote");
 		xcMethodHookApp = new XC_MethodHook() {
 			@Override
 			protected void afterHookedMethod(MethodHookParam param) throws Throwable {
@@ -134,84 +135,85 @@ public class Launcher implements IXposedHookLoadPackage, IXposedHookZygoteInit {
 
 
 	// Hook System APIs
-	private void hookSystemApis(){		
+	private void hookSystemApis(){
+		Log.i(Util.TAG,"准备hook系统api");
 		// AbstractHttpClient
-		hookAll(AbstractHttpClientHook.getMethodHookList());
+//		hookAll(AbstractHttpClientHook.getMethodHookList());
 		
 		// Activity
-		hookAll(ActivityHook.getMethodHookList());
+//		hookAll(ActivityHook.getMethodHookList());
 		
 		// ActivityThread
-		hookAll(ActivityThreadHook.getMethodHookList());
+//		hookAll(ActivityThreadHook.getMethodHookList());
 		
 		// ApplicationManager
-		hookAll(ApplicationPackageManagerHook.getMethodHookList());
+//		hookAll(ApplicationPackageManagerHook.getMethodHookList());
 		
 		// AudioRecord
-		hookAll(AudioRecordHook.getMethodHookList());
+//		hookAll(AudioRecordHook.getMethodHookList());
 		
 		// BluetoothAdapter
-		hookAll(BluetoothAdapterHook.getMethodHookList());
+//		hookAll(BluetoothAdapterHook.getMethodHookList());
 		
 		// BluetoothSocket
-		hookAll(BluetoothSocketHook.getMethodHookList());
+//		hookAll(BluetoothSocketHook.getMethodHookList());
 		
 		// BroadcastReceiver
-		hookAll(BroadcastReceiverHook.getMethodHookList());
+//		hookAll(BroadcastReceiverHook.getMethodHookList());
 				
 		// Cipher
 		hookAll(CipherHook.getMethodHookList());
 				
 		// Camera - Camera
-		hookAll(CameraHook.getMethodHookList());
+//		hookAll(CameraHook.getMethodHookList());
 				
 		// ContentResolver
-		hookAll(ContentResolverHook.getMethodHookList());
+//		hookAll(ContentResolverHook.getMethodHookList());
 		
 		// ContextImpl
 //		hookAll(ContextImplHook.getMethodHookList());
 		
 		// File
-		hookAll(FileHook.getMethodHookList());
+//		hookAll(FileHook.getMethodHookList());
 				
 		// InetAddress
-		hookAll(InetAddressHook.getMethodHookList());
+//		hookAll(InetAddressHook.getMethodHookList());
 		
 		// Instrumentation - StartActivity
-		hookAll(InstrumentationHook.getMethodHookList());
+//		hookAll(InstrumentationHook.getMethodHookList());
 		
 		// IoBridge
 		// hookAll(IoBridgeHook.getMethodHookList());
 		
 		// MediaRecord
-		hookAll(MediaRecorderHook.getMethodHookList());
+//		hookAll(MediaRecorderHook.getMethodHookList());
 		
 		// NetworkInterface
-		hookAll(NetworkInterfaceHook.getMethodHookList());
+//		hookAll(NetworkInterfaceHook.getMethodHookList());
 				
 		// ProcessBuilder
-		hookAll(ProcessBuilderHook.getMethodHookList());
+//		hookAll(ProcessBuilderHook.getMethodHookList());
 		
 		// Process
-		hookAll(ProcessHook.getMethodHookList());
+//		hookAll(ProcessHook.getMethodHookList());
 						
 		//SystemProperties
-		hookAll(SystemPropertiesHook.getMethodHookList());
+//		hookAll(SystemPropertiesHook.getMethodHookList());
 		
 		// SecretKeySpec
-		hookAll(SecretKeySpecHook.getMethodHookList());
+//		hookAll(SecretKeySpecHook.getMethodHookList());
 		
 		// Settings.Secure
-		hookAll(SettingsSecureHook.getMethodHookList());
+//		hookAll(SettingsSecureHook.getMethodHookList());
 		
 		// SmsManager
-		hookAll(SmsManagerHook.getMethodHookList());
+//		hookAll(SmsManagerHook.getMethodHookList());
 		
 		// URL
-		hookAll(URLHook.getMethodHookList());
+//		hookAll(URLHook.getMethodHookList());
 				
 		// WebView
-		hookAll(WebViewHook.getMethodHookList());
+//		hookAll(WebViewHook.getMethodHookList());
 		
 		
 	}
@@ -278,18 +280,24 @@ public class Launcher implements IXposedHookLoadPackage, IXposedHookZygoteInit {
 	// Call when package loaded
 	public void handleLoadPackage(final LoadPackageParam lpparam) throws Throwable {
 		ApplicationInfo appInfo = lpparam.appInfo;
-		if(appInfo == null)
+		if(appInfo == null) {
+			Log.i(Util.TAG,"ApplicationInfo为空");
 			return;
-		if((appInfo.flags & (ApplicationInfo.FLAG_SYSTEM | ApplicationInfo.FLAG_UPDATED_SYSTEM_APP)) !=0)
+		}
+		if((appInfo.flags & (ApplicationInfo.FLAG_SYSTEM | ApplicationInfo.FLAG_UPDATED_SYSTEM_APP)) !=0) {
+//			Log.i(Util.TAG,"ApplicationInfo handleLoadPackage出问题");
 			return;
+		}
 		if(appInfo.packageName.equals("de.robv.android.xposed.installer") || 
-			appInfo.packageName.equals(Util.SELF_PACKAGE_NAME))
+			appInfo.packageName.equals(Util.SELF_PACKAGE_NAME)) {
+			Log.i(Util.TAG,"进入xposed或者自己app");
 			return;
+		}
 		
 		// Get the uids for the applications which need log
 		Util.storeNativeLogAppUids();
 		Util.storeFrameworkLogAppUids();
-		
+		Log.i(Util.TAG,"appInfo.uid为："+appInfo.uid);
 		if(Util.isAppNeedNtLog(appInfo.uid)){
 			Log.i(Util.TAG, "handleLoadPackage: "+appInfo.packageName+" uid: "+appInfo.uid);
 			if(lpparam.isFirstApplication){
@@ -416,7 +424,7 @@ public class Launcher implements IXposedHookLoadPackage, IXposedHookZygoteInit {
 
 	private static void hook(final MethodHook methodHook, ClassLoader classLoader) {
 		try {
-			
+			Log.i(Util.TAG,"进入hook方法");
 			// Create hook method
 			XC_MethodHook xcMethodHook = new XC_MethodHook() {
 				@Override

@@ -17,7 +17,7 @@ import java.util.Random;
 
 public class Util {
 	public static final String TAG = "FEagleEye";
-	public static final String SELF_PACKAGE_NAME = "com.mindmac.eagleeye";
+	public static final String SELF_PACKAGE_NAME = "com.example.feagleeye";
 	public static final String LOG_TAG = "EagleEye";
 	
 	public static final String NATIVE_LIB = "eagleeyenative";
@@ -93,6 +93,7 @@ public class Util {
 				String[] targetUidArray = targetUids.split("\\|");
 				for(String targetUid : targetUidArray){
 					targetUid = targetUid.trim();
+					Log.i(TAG, "当前UID "+targetUids);
 					Util.NATIVE_UIDS_MAP.put(Integer.parseInt(targetUid), true);
 				}
 			}catch(Exception ex){

@@ -67,6 +67,8 @@ Java_com_example_feagleeye_NativeEntry_initCustomNativeHook(JNIEnv* env, jobject
 		return;
 	}
 
+	LOGD("进入initCustomNativeHook方法");
+
 	LIB_HOOK_INFO_NODE* lib_hook_info_node = custom_lib_hook_info_root->next;
 	void* handler = dlopen(lib_path, RTLD_LAZY);
 	if(handler == NULL){
